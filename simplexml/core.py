@@ -14,31 +14,32 @@
 import re
 from xml.dom.minidom import getDOMImplementation, parseString
 
+
 def element_from_dict(document, elRoot, data):
-    
+
     if type(data) == list:
         for item in data:
             element_from_dict(document, elRoot, item)
-            
+
         return
-        
+
     for k, v in data.items():
-        
+
         if isinstance(v, dict):
             elem = document.createElement(k)
 
             if '_attrs' in v:
-                for name,value in v["_attrs"].items():
+                for name, value in v["_attrs"].items():
                     elem.setAttribute(name, str(value))
                 del(v["_attrs"])
-            
+
             if '_value' in v:
                 value = v.get('_value')
                 textNode = document.createCDATASection(value) if isinstance(value, str) and re.search("[\<\>\&]", value) else document.createTextNode(str(value))
                 elem.appendChild(textNode)
             else:
                 element_from_dict(document, elem, v)
-                
+
             elRoot.appendChild(elem)
         elif isinstance(v, list):
             if k.endswith("s"):
@@ -52,7 +53,7 @@ def element_from_dict(document, elRoot, data):
                 for item in v:
                     elItem = document.createElement(k)
                     if '_attrs' in item:
-                        for name,value in item["_attrs"].items():
+                        for name, value in item["_attrs"].items():
                             elItem.setAttribute(name, str(value))
                         del(item["_attrs"])
 
@@ -64,7 +65,7 @@ def element_from_dict(document, elRoot, data):
                         element_from_dict(document, elItem, item)
 
                     elRoot.appendChild(elItem)
-                    
+
         elif isinstance(v, str) and re.search("[\<\>\&]", v):
             elem = document.createElement(k)
             elem.appendChild(document.createCDATASection(v))
@@ -73,6 +74,7 @@ def element_from_dict(document, elRoot, data):
             elem = document.createElement(k)
             elem.appendChild(document.createTextNode(str(v)))
             elRoot.appendChild(elem)
+
 
 def isNodeList(elem):
 
@@ -85,6 +87,7 @@ def isNodeList(elem):
         if node.nodeName != nodeListPattern:
             return False
     return True
+
 
 def dict_from_element(element, dic):
 
@@ -115,8 +118,9 @@ def dict_from_element(element, dic):
 
     return dic
 
-def dumps(data):
-    
+
+def dumps(data, encoding=None):
+
     data_items = [(key, values) for key, values in data.items()]
     rootName, rootValue = data_items[0]
     implementation = getDOMImplementation()
@@ -124,13 +128,14 @@ def dumps(data):
 
     rootNode = document.documentElement
     if type(rootValue) == dict and '_attrs' in rootValue:
-        for name,value in rootValue["_attrs"].items():
-            rootNode.setAttribute(name, value)      
+        for name, value in rootValue["_attrs"].items():
+            rootNode.setAttribute(name, value)
         del(rootValue["_attrs"])
-    
+
     element_from_dict(document, rootNode,  rootValue)
 
-    return document.toxml()
+    return document.toxml(encoding=encoding)
+
 
 def loads(data):
 
