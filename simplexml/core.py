@@ -127,7 +127,8 @@ def dumps(data, encoding=None):
     document = implementation.createDocument(None, rootName, None)
 
     rootNode = document.documentElement
-    if type(rootValue) == dict and '_attrs' in rootValue:
+
+    if isinstance(rootValue, dict) and '_attrs' in rootValue:
         for name, value in rootValue["_attrs"].items():
             rootNode.setAttribute(name, value)
         del(rootValue["_attrs"])
